@@ -1,0 +1,12 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "vpmc",
+  "outputfilename": "vpmc",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "",
+  "author": {
+    "name": "CrafterMinecrafter",
+    "email": "67530305+CrafterMinecrafter@users.noreply.github.com"
+  }
+}

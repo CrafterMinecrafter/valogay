@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "states": {},
+  "game_modes": {},
+  "controller_mode": "pear",
+  "pear_port": 9863,
+  "monitor": {
+    "base_interval_ms": 500,
+    "hysteresis_count": 3,
+    "watchdog_timeout_sec": 30,
+    "mode_detect_threshold": 10,
+    "display_index": 0
+  },
+  "discord": {
+    "enabled": true,
+    "app_id": "",
+    "riot_id": ""
+  }
+}

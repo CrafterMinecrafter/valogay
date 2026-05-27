@@ -53,6 +53,10 @@ func (m *Manager) activeCtl() MusicController {
 	return m.controllers[ModeWinKey]
 }
 
+func (m *Manager) Controller() MusicController {
+	return m.activeCtl()
+}
+
 func (m *Manager) SetMode(mode Mode) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -62,11 +66,12 @@ func (m *Manager) SetMode(mode Mode) {
 	m.active.Store(mode)
 }
 
-func (m *Manager) SetPearPort(port int) {
+func (m *Manager) SetPearConfig(port int) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.controllers[ModePear] = NewPearController(port)
 }
+
 func (m *Manager) Play() error {
 	m.lastKnownAction.Store(config.ActionPlay)
 	return m.activeCtl().Play()
@@ -76,6 +81,24 @@ func (m *Manager) Pause() error {
 	return m.activeCtl().Pause()
 }
 func (m *Manager) Toggle() error { return m.activeCtl().Toggle() }
+func (m *Manager) Prev() error {
+	if c, ok := m.activeCtl().(interface{ Prev() error }); ok {
+		return c.Prev()
+	}
+	return nil
+}
+func (m *Manager) Next() error {
+	if c, ok := m.activeCtl().(interface{ Next() error }); ok {
+		return c.Next()
+	}
+	return nil
+}
+func (m *Manager) RepeatOne() error {
+	if c, ok := m.activeCtl().(interface{ RepeatOne() error }); ok {
+		return c.RepeatOne()
+	}
+	return nil
+}
 func (m *Manager) ExecuteAction(a config.Action) {
 	switch a {
 	case config.ActionPlay:
@@ -84,6 +107,14 @@ func (m *Manager) ExecuteAction(a config.Action) {
 		_ = m.Pause()
 	}
 }
+
+func (m *Manager) GetLastAction() config.Action {
+	if a, ok := m.lastKnownAction.Load().(config.Action); ok {
+		return a
+	}
+	return config.ActionPlay
+}
+
 func (m *Manager) StatusAll() map[Mode]Status {
 	out := map[Mode]Status{}
 	for mode, c := range m.controllers {

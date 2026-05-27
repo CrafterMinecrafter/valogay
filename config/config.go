@@ -8,6 +8,8 @@ type Config struct {
 	GameModes      map[string]GameMode    `json:"game_modes"`
 	ControllerMode string                 `json:"controller_mode"`
 	PearPort       int                    `json:"pear_port"`
+	PearAuthID     string                 `json:"pear_auth_id,omitempty"`
+	PearToken      string                 `json:"pear_token,omitempty"`
 	Monitor        MonitorConfig          `json:"monitor"`
 	Discord        DiscordConfig          `json:"discord"`
 }

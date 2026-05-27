@@ -6,7 +6,7 @@ import (
 )
 
 func Default() *Config {
-	return Migrate(&Config{Version: 1, ControllerMode: "auto", PearPort: 9863, States: map[string]StateConfig{}, GameModes: map[string]GameMode{}, Monitor: MonitorConfig{BaseIntervalMs: 500, HysteresisCount: 3, WatchdogTimeoutSec: 30, ModeDetectThreshold: 10}})
+	return Migrate(&Config{Version: 1, ControllerMode: "auto", PearPort: 9863, PearAuthID: "", PearToken: "", States: map[string]StateConfig{}, GameModes: map[string]GameMode{}, Monitor: MonitorConfig{BaseIntervalMs: 500, HysteresisCount: 3, WatchdogTimeoutSec: 30, ModeDetectThreshold: 10}})
 }
 
 func Load(path string) (*Config, error) {

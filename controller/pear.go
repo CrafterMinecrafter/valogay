@@ -1,30 +1,25 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 )
 
 type PearController struct {
 	baseURL string
 	cl      *http.Client
-	token   string
 }
 
 func NewPearController(port int) *PearController {
-	p := &PearController{baseURL: fmt.Sprintf("http://localhost:%d", port), cl: &http.Client{Timeout: 2 * time.Second}, token: strings.TrimSpace(os.Getenv("PEAR_ACCESS_TOKEN"))}
-	if p.token == "" {
-		p.token = p.fetchToken(strings.TrimSpace(os.Getenv("PEAR_AUTH_ID")))
-	}
-	return p
+	return &PearController{baseURL: fmt.Sprintf("http://localhost:%d", port), cl: &http.Client{Timeout: 2 * time.Second}}
 }
 
 func (p *PearController) Name() string { return "Pear" }
+
 func (p *PearController) IsAvailable() bool {
 	cl := *p.cl
 	cl.Timeout = 500 * time.Millisecond
@@ -33,57 +28,86 @@ func (p *PearController) IsAvailable() bool {
 		return false
 	}
 	defer r.Body.Close()
-	return r.StatusCode == http.StatusOK || r.StatusCode == http.StatusNoContent
+	return r.StatusCode == http.StatusOK
 }
+
 func (p *PearController) Toggle() error {
-	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/toggle-play", nil)
+	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/toggle-play", bytes.NewBufferString("{}"))
 	if err != nil {
 		return err
 	}
 	defer r.Body.Close()
-	if r.StatusCode >= 300 {
+	if r.StatusCode >= 300 && r.StatusCode != 204 {
 		return fmt.Errorf("toggle failed: %d", r.StatusCode)
 	}
 	return nil
 }
 
 func (p *PearController) Play() error {
-	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/play", nil)
+	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/play", bytes.NewBufferString("{}"))
 	if err != nil {
 		return err
 	}
 	defer r.Body.Close()
-	if r.StatusCode >= 300 {
+	if r.StatusCode >= 300 && r.StatusCode != 204 {
 		return fmt.Errorf("play failed: %d", r.StatusCode)
 	}
 	return nil
 }
 
 func (p *PearController) Pause() error {
-	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/pause", nil)
+	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/pause", bytes.NewBufferString("{}"))
 	if err != nil {
 		return err
 	}
 	defer r.Body.Close()
-	if r.StatusCode >= 300 {
+	if r.StatusCode >= 300 && r.StatusCode != 204 {
 		return fmt.Errorf("pause failed: %d", r.StatusCode)
 	}
 	return nil
 }
 
-func (p *PearController) isPaused() (bool, error) {
-	r, err := p.doReq(p.cl, http.MethodGet, "/api/v1/song", nil)
+func (p *PearController) RepeatOne() error {
+	body, _ := json.Marshal(map[string]int{"iteration": 1})
+	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/switch-repeat", bytes.NewBuffer(body))
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer r.Body.Close()
-	var resp struct {
-		IsPaused bool `json:"isPaused"`
+	if r.StatusCode >= 300 && r.StatusCode != 204 {
+		return fmt.Errorf("repeat-one failed: %d", r.StatusCode)
 	}
-	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return false, err
+	return nil
+}
+
+func (p *PearController) Like() error {
+	r, err := p.doReq(p.cl, http.MethodPost, "/api/v1/like", bytes.NewBufferString("{}"))
+	if err != nil {
+		return err
 	}
-	return resp.IsPaused, nil
+	defer r.Body.Close()
+	if r.StatusCode >= 300 && r.StatusCode != 204 {
+		return fmt.Errorf("like failed: %d", r.StatusCode)
+	}
+	return nil
+}
+
+func (p *PearController) SongInfo() (map[string]interface{}, error) {
+	cl := *p.cl
+	cl.Timeout = 500 * time.Millisecond
+	r, err := p.doReq(&cl, http.MethodGet, "/api/v1/song", nil)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode >= 300 {
+		return nil, fmt.Errorf("song info failed: %d", r.StatusCode)
+	}
+	var info map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
+		return nil, err
+	}
+	return info, nil
 }
 
 func (p *PearController) doReq(cl *http.Client, method, path string, body io.Reader) (*http.Response, error) {
@@ -91,29 +115,8 @@ func (p *PearController) doReq(cl *http.Client, method, path string, body io.Rea
 	if err != nil {
 		return nil, err
 	}
-	if p.token != "" {
-		req.Header.Set("Authorization", "Bearer "+p.token)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
 	return cl.Do(req)
-}
-
-func (p *PearController) fetchToken(id string) string {
-	if id == "" {
-		return ""
-	}
-	r, err := p.doReq(p.cl, http.MethodPost, "/auth/"+id, nil)
-	if err != nil {
-		return ""
-	}
-	defer r.Body.Close()
-	if r.StatusCode >= 300 {
-		return ""
-	}
-	var resp struct {
-		AccessToken string `json:"accessToken"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		return ""
-	}
-	return strings.TrimSpace(resp.AccessToken)
 }

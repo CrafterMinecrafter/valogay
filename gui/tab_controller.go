@@ -20,6 +20,10 @@ func buildControllerTab(cfg *config.Config, mgr *controller.Manager) *container.
 	mode.Selected = cfg.ControllerMode
 	port := widget.NewEntry()
 	port.SetText(strconv.Itoa(cfg.PearPort))
+	authID := widget.NewEntry()
+	authID.SetText(cfg.PearAuthID)
+	token := widget.NewPasswordEntry()
+	token.SetText(cfg.PearToken)
 	status := widget.NewLabel("Статус контроллеров")
 
 	reload := func() {
@@ -32,6 +36,10 @@ func buildControllerTab(cfg *config.Config, mgr *controller.Manager) *container.
 			mgr.SetPearPort(p)
 			_ = config.Save("config.json", cfg)
 		}
+		cfg.PearAuthID = authID.Text
+		cfg.PearToken = token.Text
+		mgr.SetPearConfig(cfg.PearPort, cfg.PearToken, cfg.PearAuthID)
+		_ = config.Save("config.json", cfg)
 		reload()
 	})
 	reload()
@@ -45,9 +53,9 @@ func buildControllerTab(cfg *config.Config, mgr *controller.Manager) *container.
 	}()
 
 	testBtns := container.NewHBox(
-		widget.NewButton("▶ Play", func() { _ = mgr.Play() }),
-		widget.NewButton("⏸ Pause", func() { _ = mgr.Pause() }),
-		widget.NewButton("⟳ Toggle", func() { _ = mgr.Toggle() }),
+		widget.NewButton("▶ Play", func() { status.SetText(fmt.Sprintf("Play: %v", mgr.Play())); reload() }),
+		widget.NewButton("⏸ Pause", func() { status.SetText(fmt.Sprintf("Pause: %v", mgr.Pause())); reload() }),
+		widget.NewButton("⟳ Toggle", func() { status.SetText(fmt.Sprintf("Toggle: %v", mgr.Toggle())); reload() }),
 	)
 
 	content := container.NewVBox(

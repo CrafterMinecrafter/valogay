@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPMC</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <h1>VPMC</h1>
+            <span id="status-bar">● — │ ⚔️ — │ ▶ — │ Раунд 0</span>
+        </header>
+
+        <main class="tabs">
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="player">Плеер</button>
+                <button class="tab-btn" data-tab="discord">Discord</button>
+                <button class="tab-btn" data-tab="settings">Настройки</button>
+            </nav>
+
+            <div class="tab-content" id="player">
+                <h2>Музыка</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Режим:</label>
+                        <select id="controller-mode">
+                            <option value="auto">Auto (Pear → WinKey)</option>
+                            <option value="pear">Pear</option>
+                            <option value="winkey">WinKey</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Порт Pear:</label>
+                        <input type="number" id="pear-port" value="9863">
+                    </div>
+                    <div class="status-row">
+                        <span id="winkey-status">WinKey: OFF</span>
+                        <span id="pear-status">Pear: OFF</span>
+                    </div>
+                    <div class="buttons">
+                        <button id="btn-play" class="btn">▶ Play</button>
+                        <button id="btn-pause" class="btn">⏸ Pause</button>
+                        <button id="btn-toggle" class="btn">⟳ Toggle</button>
+                    </div>
+                    <div class="now-playing">
+                        <div id="song-title">Нет трека</div>
+                        <div id="song-artist">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="discord">
+                <h2>Discord Rich Presence</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label><input type="checkbox" id="discord-enabled"> Включить</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Application ID:</label>
+                        <input type="text" id="discord-appid" placeholder="123456789">
+                    </div>
+                    <div class="form-group">
+                        <label>Riot ID:</label>
+                        <input type="text" id="discord-riotid" placeholder="NickName#RU1">
+                    </div>
+                    <div class="form-group">
+                        <label>Кнопка (Label):</label>
+                        <input type="text" id="discord-btn-label">
+                    </div>
+                    <div class="form-group">
+                        <label>Кнопка (URL):</label>
+                        <input type="text" id="discord-btn-url">
+                    </div>
+                    <button id="btn-save-discord" class="btn">Сохранить</button>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="settings">
+                <h2>Настройки</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Интервал монитора (мс):</label>
+                        <input type="number" id="cfg-interval" value="500">
+                    </div>
+                    <div class="form-group">
+                        <label>Гистерезис:</label>
+                        <input type="number" id="cfg-hysteresis" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label>Watchdog (сек):</label>
+                        <input type="number" id="cfg-watchdog" value="30">
+                    </div>
+                    <button id="btn-save-settings" class="btn">Сохранить</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <button id="btn-apply" class="btn">Запустить</button>
+            <button id="btn-stop" class="btn btn-danger">Стоп</button>
+        </footer>
+    </div>
+    <script type="module" src="/js/app.js"></script>
+</body>
+</html>
