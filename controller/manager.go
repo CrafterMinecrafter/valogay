@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log/slog"
+	"sync"
 	"sync/atomic"
 	"vpmc/config"
 )
@@ -21,6 +22,7 @@ type Status struct {
 
 type Manager struct {
 	controllers     map[Mode]MusicController
+	mu              sync.RWMutex
 	active          atomic.Value
 	lastKnownAction atomic.Value
 	logger          *slog.Logger
@@ -36,6 +38,8 @@ func NewManager(cfg *config.Config) *Manager {
 }
 
 func (m *Manager) activeCtl() MusicController {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	a := m.active.Load().(Mode)
 	if a == ModeAuto {
 		if p, ok := m.controllers[ModePear]; ok && p.IsAvailable() {
@@ -47,6 +51,21 @@ func (m *Manager) activeCtl() MusicController {
 		return c
 	}
 	return m.controllers[ModeWinKey]
+}
+
+func (m *Manager) SetMode(mode Mode) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.controllers[mode]; !ok && mode != ModeAuto {
+		mode = ModeAuto
+	}
+	m.active.Store(mode)
+}
+
+func (m *Manager) SetPearPort(port int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.controllers[ModePear] = NewPearController(port)
 }
 func (m *Manager) Play() error {
 	m.lastKnownAction.Store(config.ActionPlay)
