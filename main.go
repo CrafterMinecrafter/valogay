@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,6 +10,9 @@ import (
 	"vpmc/controller"
 	"vpmc/discord"
 	"vpmc/fsm"
+	"vpmc/gui"
+	"vpmc/monitor"
+	"vpmc/vision"
 )
 
 func main() {
@@ -16,6 +20,13 @@ func main() {
 	if err != nil {
 		cfg = config.Default()
 	}
+	capturer, err := vision.NewDXGICapturer(cfg.Monitor.DisplayIndex)
+	if err != nil {
+		slog.Error("capturer init", "err", err)
+		return
+	}
+	defer capturer.Close()
+
 	machine := fsm.New(cfg)
 	machine.Reset()
 	mgr := controller.NewManager(cfg)
@@ -24,14 +35,21 @@ func main() {
 		mgr.ExecuteAction(action)
 		_ = presence.Update(to, machine.CurrentMode(), machine.RoundNum())
 	}
+	mon := monitor.New(machine, mgr, vision.NewComparer(), capturer, cfg)
+	mon.Start()
+	defer mon.Stop()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	presence.Start(ctx)
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigCh
 		_ = mgr.Play()
 		presence.Logout()
+		_ = capturer.Close()
+		cancel()
 		os.Exit(0)
 	}()
-	fmt.Println("VPMC initialized")
-	select {}
+	gui.Run(cfg, machine, mgr, presence)
 }
