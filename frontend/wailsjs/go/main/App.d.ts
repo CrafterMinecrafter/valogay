@@ -3,11 +3,15 @@
 import {config} from '../models';
 import {main} from '../models';
 
+export function DeleteRegion(arg1:string):Promise<void>;
+
 export function GetConfig():Promise<config.Config>;
 
 export function GetDiscordConfig():Promise<config.DiscordConfig>;
 
 export function GetMonitorConfig():Promise<config.MonitorConfig>;
+
+export function GetRegions():Promise<Array<config.Region>>;
 
 export function GetSongInfo():Promise<main.SongInfo>;
 
@@ -21,9 +25,21 @@ export function Pause():Promise<void>;
 
 export function Play():Promise<void>;
 
+export function RecorderFramesMeta():Promise<Array<Record<string, any>>>;
+
+export function RecorderLastFrameImage():Promise<string>;
+
+export function RecorderStart():Promise<void>;
+
+export function RecorderStatus():Promise<Record<string, any>>;
+
+export function RecorderStop():Promise<void>;
+
 export function SaveDiscordConfig(arg1:boolean,arg2:string,arg3:string,arg4:string,arg5:string):Promise<void>;
 
 export function SaveMonitorConfig(arg1:number,arg2:number,arg3:number,arg4:number):Promise<void>;
+
+export function SaveRegions(arg1:Array<config.Region>):Promise<void>;
 
 export function SetMode(arg1:string):Promise<void>;
 

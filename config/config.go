@@ -11,7 +11,18 @@ type Config struct {
 	PearAuthID     string                 `json:"pear_auth_id,omitempty"`
 	PearToken      string                 `json:"pear_token,omitempty"`
 	Monitor        MonitorConfig          `json:"monitor"`
+	Recorder       RecorderConfig         `json:"recorder"`
 	Discord        DiscordConfig          `json:"discord"`
+	Regions        []Region               `json:"regions"`
+}
+
+type Region struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	X    int    `json:"x"`
+	Y    int    `json:"y"`
+	W    int    `json:"w"`
+	H    int    `json:"h"`
 }
 
 type MonitorConfig struct {
@@ -20,6 +31,12 @@ type MonitorConfig struct {
 	WatchdogTimeoutSec  int `json:"watchdog_timeout_sec"`
 	ModeDetectThreshold int `json:"mode_detect_threshold"`
 	DisplayIndex        int `json:"display_index"`
+}
+
+type RecorderConfig struct {
+	Enabled    bool   `json:"enabled"`
+	IntervalSec int   `json:"interval_sec"`
+	OutputDir  string `json:"output_dir"`
 }
 
 type StateConfig struct {

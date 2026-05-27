@@ -31,5 +31,14 @@ func Migrate(cfg *Config) *Config {
 	if cfg.Monitor.ModeDetectThreshold == 0 {
 		cfg.Monitor.ModeDetectThreshold = 10
 	}
+	if cfg.Recorder.IntervalSec == 0 {
+		cfg.Recorder.IntervalSec = 10
+	}
+	if cfg.Recorder.OutputDir == "" {
+		cfg.Recorder.OutputDir = "recordings"
+	}
+	if cfg.Regions == nil {
+		cfg.Regions = []Region{}
+	}
 	return cfg
 }

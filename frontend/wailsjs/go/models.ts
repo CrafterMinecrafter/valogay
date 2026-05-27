@@ -36,6 +36,28 @@ export namespace config {
 		    return a;
 		}
 	}
+	export class Region {
+	    id: string;
+	    name: string;
+	    x: number;
+	    y: number;
+	    w: number;
+	    h: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Region(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.x = source["x"];
+	        this.y = source["y"];
+	        this.w = source["w"];
+	        this.h = source["h"];
+	    }
+	}
 	export class DiscordButton {
 	    label: string;
 	    url: string;
@@ -85,6 +107,22 @@ export namespace config {
 		    }
 		    return a;
 		}
+	}
+	export class RecorderConfig {
+	    enabled: boolean;
+	    interval_sec: number;
+	    output_dir: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecorderConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.enabled = source["enabled"];
+	        this.interval_sec = source["interval_sec"];
+	        this.output_dir = source["output_dir"];
+	    }
 	}
 	export class MonitorConfig {
 	    base_interval_ms: number;
@@ -233,7 +271,9 @@ export namespace config {
 	    pear_auth_id?: string;
 	    pear_token?: string;
 	    monitor: MonitorConfig;
+	    recorder: RecorderConfig;
 	    discord: DiscordConfig;
+	    regions: Region[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -249,7 +289,9 @@ export namespace config {
 	        this.pear_auth_id = source["pear_auth_id"];
 	        this.pear_token = source["pear_token"];
 	        this.monitor = this.convertValues(source["monitor"], MonitorConfig);
+	        this.recorder = this.convertValues(source["recorder"], RecorderConfig);
 	        this.discord = this.convertValues(source["discord"], DiscordConfig);
+	        this.regions = this.convertValues(source["regions"], Region);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -270,6 +312,8 @@ export namespace config {
 		    return a;
 		}
 	}
+	
+	
 	
 	
 	

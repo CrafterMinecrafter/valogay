@@ -1,7 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"embed"
+	"encoding/base64"
+	"image"
+	"image/color"
+	"image/png"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -11,6 +16,7 @@ import (
 	"vpmc/discord"
 	"vpmc/fsm"
 	"vpmc/monitor"
+	"vpmc/recorder"
 	"vpmc/vision"
 
 	"github.com/wailsapp/wails/v2"
@@ -28,6 +34,7 @@ type App struct {
 	presence *discord.PresenceManager
 	mon      *monitor.Monitor
 	capturer vision.Capturer
+	rec      *recorder.Recorder
 }
 
 type Status struct {
@@ -94,7 +101,91 @@ func (a *App) SaveMonitorConfig(intervalMs, hysteresis, watchdogSec, modeThresho
 	return config.Save("config.json", a.cfg)
 }
 
+func (a *App) GetRegions() []config.Region { return a.cfg.Regions }
+
+func (a *App) SaveRegions(regions []config.Region) error {
+	a.cfg.Regions = regions
+	return config.Save("config.json", a.cfg)
+}
+
+func (a *App) DeleteRegion(id string) error {
+	regions := make([]config.Region, 0, len(a.cfg.Regions))
+	for _, r := range a.cfg.Regions {
+		if r.ID != id {
+			regions = append(regions, r)
+		}
+	}
+	a.cfg.Regions = regions
+	return config.Save("config.json", a.cfg)
+}
+
 func (a *App) GetStates() map[string]config.StateConfig { return a.cfg.States }
+
+func (a *App) RecorderStart() error {
+	if a.rec != nil {
+		a.cfg.Recorder.Enabled = true
+		a.rec.Start()
+	}
+	return nil
+}
+
+func (a *App) RecorderStop() error {
+	if a.rec != nil {
+		a.cfg.Recorder.Enabled = false
+		a.rec.Stop()
+	}
+	return nil
+}
+
+func (a *App) RecorderStatus() map[string]interface{} {
+	count := 0
+	if a.rec != nil {
+		count = len(a.rec.Frames())
+	}
+	return map[string]interface{}{
+		"enabled":      a.cfg.Recorder.Enabled,
+		"interval_sec": a.cfg.Recorder.IntervalSec,
+		"output_dir":   a.cfg.Recorder.OutputDir,
+		"frames_count": count,
+	}
+}
+
+func (a *App) RecorderLastFrameImage() string {
+	if a.rec == nil {
+		return ""
+	}
+	f := a.rec.LastFrame()
+	if f == nil {
+		return ""
+	}
+	img := image.NewRGBA(image.Rect(0, 0, f.Width, f.Height))
+	for y := 0; y < f.Height; y++ {
+		for x := 0; x < f.Width; x++ {
+			v := f.Pixels[y*f.Width+x]
+			img.Set(x, y, color.RGBA{R: v, G: v, B: v, A: 255})
+		}
+	}
+	var buf bytes.Buffer
+	png.Encode(&buf, img)
+	return base64.StdEncoding.EncodeToString(buf.Bytes())
+}
+
+func (a *App) RecorderFramesMeta() []map[string]interface{} {
+	if a.rec == nil {
+		return nil
+	}
+	frames := a.rec.Frames()
+	out := make([]map[string]interface{}, len(frames))
+	for i, f := range frames {
+		out[i] = map[string]interface{}{
+			"width":     f.Width,
+			"height":    f.Height,
+			"timestamp": f.Timestamp,
+		}
+	}
+	return out
+}
+
 
 func main() {
 	cfg, _ := config.Load("config.json")
@@ -119,7 +210,12 @@ func main() {
 		_ = presence.Update(to, machine.CurrentMode(), machine.RoundNum())
 	}
 
-	app := &App{cfg: cfg, machine: machine, mgr: mgr, presence: presence, mon: monitor.New(machine, mgr, vision.NewComparer(), capturer, cfg), capturer: capturer}
+	rec := recorder.New(cfg.Recorder.IntervalSec, cfg.Recorder.OutputDir)
+	if cfg.Recorder.Enabled {
+		rec.Start()
+	}
+
+	app := &App{cfg: cfg, machine: machine, mgr: mgr, presence: presence, mon: monitor.New(machine, mgr, vision.NewComparer(), capturer, cfg), capturer: capturer, rec: rec}
 
 	go app.mon.Start()
 
@@ -130,6 +226,7 @@ func main() {
 		_ = mgr.Play()
 		presence.Logout()
 		app.mon.Stop()
+		rec.Stop()
 		_ = capturer.Close()
 		os.Exit(0)
 	}()

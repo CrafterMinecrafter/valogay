@@ -16,6 +16,8 @@
         <main class="tabs">
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="player">Плеер</button>
+                <button class="tab-btn" data-tab="recorder">Recorder</button>
+                <button class="tab-btn" data-tab="screen">Скрин</button>
                 <button class="tab-btn" data-tab="discord">Discord</button>
                 <button class="tab-btn" data-tab="settings">Настройки</button>
             </nav>
@@ -47,6 +49,54 @@
                     <div class="now-playing">
                         <div id="song-title">Нет трека</div>
                         <div id="song-artist">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="recorder">
+                <h2>Valorant Recorder</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label><input type="checkbox" id="recorder-enabled"> Включить запись</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Интервал (сек):</label>
+                        <input type="number" id="recorder-interval" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Папка:</label>
+                        <input type="text" id="recorder-output" value="recordings">
+                    </div>
+                    <div class="buttons">
+                        <button id="btn-recorder-save" class="btn">Сохранить</button>
+                    </div>
+                    <div class="now-playing" style="margin-top:12px">
+                        <div id="recorder-status">⏹ Остановлен</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="screen">
+                <h2>Редактор скриншотов</h2>
+                <div class="screen-editor">
+                    <div class="screen-toolbar">
+                        <button id="screen-tool-select" class="btn active">Выделение</button>
+                        <button id="screen-tool-pan" class="btn">Перемещение</button>
+                        <button id="screen-reset-view" class="btn">Сброс вида</button>
+                        <span class="screen-info" id="screen-info">—</span>
+                    </div>
+                    <div class="screen-layout">
+                        <div class="screen-canvas-wrap" id="screen-canvas-wrap">
+                            <canvas id="screen-canvas"></canvas>
+                            <div id="screen-placeholder">Ожидание скриншота...</div>
+                        </div>
+                        <div class="screen-sidebar">
+                            <div class="regions-header">Области <button id="screen-add-region" class="btn btn-sm">+</button></div>
+                            <div id="screen-regions-list"></div>
+                            <div id="screen-export" class="screen-export">
+                                <button id="screen-copy-coords" class="btn btn-sm">Копировать coords</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
