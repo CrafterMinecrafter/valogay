@@ -14,7 +14,6 @@ type StatusDot struct {
 
 func NewStatusDot() *StatusDot {
 	d := &StatusDot{dot: canvas.NewCircle(color.NRGBA{R: 180, G: 180, B: 180, A: 255})}
-	d.dot.SetMinSize(fyne.NewSize(12, 12))
 	return d
 }
 

@@ -12,8 +12,6 @@ import (
 )
 
 type RegionEditor struct {
-	widget.BaseWidget
-
 	screenshot image.Image
 	selection  image.Rectangle
 	zoom       float32
@@ -31,7 +29,6 @@ type RegionEditor struct {
 
 func NewRegionEditor(img image.Image) *RegionEditor {
 	r := &RegionEditor{screenshot: img, zoom: 1.0}
-	r.ExtendBaseWidget(r)
 	r.buildUI()
 	return r
 }
