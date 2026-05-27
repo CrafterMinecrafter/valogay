@@ -12,7 +12,11 @@ import (
 )
 
 func buildControllerTab(cfg *config.Config, mgr *controller.Manager) *container.TabItem {
-	mode := widget.NewRadioGroup([]string{"auto", "winkey", "pear"}, func(s string) { cfg.ControllerMode = s })
+	mode := widget.NewRadioGroup([]string{"auto", "winkey", "pear"}, func(s string) {
+		cfg.ControllerMode = s
+		mgr.SetMode(controller.Mode(s))
+		_ = config.Save("config.json", cfg)
+	})
 	mode.Selected = cfg.ControllerMode
 	port := widget.NewEntry()
 	port.SetText(strconv.Itoa(cfg.PearPort))
@@ -22,9 +26,11 @@ func buildControllerTab(cfg *config.Config, mgr *controller.Manager) *container.
 		st := mgr.StatusAll()
 		status.SetText(fmt.Sprintf("WinKey: %v\nPear: %v", st[controller.ModeWinKey].Available, st[controller.ModePear].Available))
 	}
-	widget.NewButton("Проверить", func() {
+	checkBtn := widget.NewButton("Проверить", func() {
 		if p, err := strconv.Atoi(port.Text); err == nil {
 			cfg.PearPort = p
+			mgr.SetPearPort(p)
+			_ = config.Save("config.json", cfg)
 		}
 		reload()
 	})
@@ -47,7 +53,7 @@ func buildControllerTab(cfg *config.Config, mgr *controller.Manager) *container.
 	content := container.NewVBox(
 		widget.NewLabel("🎵 Режим управления музыкой"),
 		mode,
-		container.NewHBox(widget.NewLabel("Порт Pear:"), port, widget.NewButton("Проверить", func() { reload() })),
+		container.NewHBox(widget.NewLabel("Порт Pear:"), port, checkBtn),
 		status,
 		testBtns,
 	)

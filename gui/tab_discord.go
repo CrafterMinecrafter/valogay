@@ -26,7 +26,10 @@ func buildDiscordTab(cfg *config.Config, _ *discord.PresenceManager) *container.
 		cfg.Discord.RiotID = riotID.Text
 		if customText.Text != "" {
 			cfg.Discord.CustomBtn = &config.DiscordButton{Label: customText.Text, URL: customURL.Text}
+		} else {
+			cfg.Discord.CustomBtn = nil
 		}
+		_ = config.Save("config.json", cfg)
 	})
 
 	content := container.NewVBox(

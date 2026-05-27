@@ -30,6 +30,7 @@ func buildSettingsTab(cfg *config.Config) *container.TabItem {
 		if v, e := strconv.Atoi(mode.Text); e == nil {
 			cfg.Monitor.ModeDetectThreshold = v
 		}
+		_ = config.Save("config.json", cfg)
 	})
 	return container.NewTabItem("Настройки", container.NewVBox(widget.NewLabel("Monitor"), base, hys, watch, mode, save))
 }
